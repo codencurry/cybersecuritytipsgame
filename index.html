@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Safety Memory Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; color: #333; }
+        .container { display: none; }
+        .game-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 700px; margin: auto; }
+        .card { 
+            width: 140px; 
+            height: 140px; 
+            background: #3498db; 
+            color: white;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            font-weight: bold; 
+            padding: 10px; 
+            border-radius: 10px;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .card:hover { background: #2980b9; }
+        .matched { background: #2ecc71 !important; color: white !important; pointer-events: none; }
+        .hidden { background: #3498db; color: transparent; }
+        button { 
+            background: #e74c3c; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            border-radius: 5px; 
+            transition: background 0.3s ease;
+        }
+        button:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+    <div id="start-page">
+        <h1>Cyber Safety Memory Game</h1>
+        <p>Match the cyber safety tips with their descriptions. Learn first, then play the game!</p>
+        
+        <div class="info-container">
+            <h3>Cyber Safety Tips</h3>
+            <ul>
+                <li><strong>Use Strong Passwords:</strong> Create complex passwords with numbers, letters, and symbols.</li>
+                <li><strong>Enable Two-Factor Authentication:</strong> Add an extra layer of security with a secondary code.</li>
+                <li><strong>Think Before You Click:</strong> Avoid clicking suspicious links in emails or messages.</li>
+                <li><strong>Keep Software Updated:</strong> Regularly update operating systems and apps.</li>
+                <li><strong>Use Secure Websites:</strong> Ensure websites have HTTPS before entering sensitive information.</li>
+                <li><strong>Avoid Public Wi-Fi:</strong> Use a VPN or mobile data when on an untrusted network.</li>
+                <li><strong>Be Wary of Social Engineering:</strong> Verify sender identities before sharing personal details.</li>
+                <li><strong>Back Up Your Data:</strong> Keep copies of important files in case of a cyber attack.</li>
+                <li><strong>Monitor Your Accounts:</strong> Check for unauthorized activity and change passwords if needed.</li>
+                <li><strong>Use Firewalls and Antivirus:</strong> Protect your devices from cyber threats.</li>
+            </ul>
+        </div>
+        
+        <button onclick="startGame()">Start Game</button>
+    </div>
+    
+    <div id="game-page" class="container">
+        <h1>Cyber Safety Matching Challenge</h1>
+        <div class="game-container" id="game-board"></div>
+    </div>
+    
+    <div id="completion-page" class="container">
+        <h1>Congratulations!</h1>
+        <p>You successfully matched all cyber safety tips!</p>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script>
+        const pairs = [
+            { tip: "Use Strong Passwords", description: "Create complex passwords with numbers, letters, and symbols" },
+            { tip: "Enable Two-Factor Authentication", description: "Add an extra layer of security with a secondary code" },
+            { tip: "Think Before You Click", description: "Avoid clicking suspicious links in emails or messages" },
+            { tip: "Keep Software Updated", description: "Regularly update operating systems and apps" },
+            { tip: "Use Secure Websites", description: "Ensure websites have HTTPS before entering sensitive information" },
+            { tip: "Avoid Public Wi-Fi", description: "Use a VPN or mobile data when on an untrusted network" },
+            { tip: "Be Wary of Social Engineering", description: "Verify sender identities before sharing personal details" },
+            { tip: "Back Up Your Data", description: "Keep copies of important files in case of a cyber attack" },
+            { tip: "Monitor Your Accounts", description: "Check for unauthorized activity and change passwords if needed" },
+            { tip: "Use Firewalls and Antivirus", description: "Protect your devices from cyber threats" }
+        ];
+        
+        let shuffledPairs = [];
+        let selected = [];
+        let matched = [];
+        
+        function startGame() {
+            document.getElementById("start-page").style.display = "none";
+            document.getElementById("game-page").style.display = "block";
+            document.getElementById("completion-page").style.display = "none";
+            initGame();
+        }
+        
+        function restartGame() {
+            document.getElementById("completion-page").style.display = "none";
+            document.getElementById("game-page").style.display = "block";
+            initGame();
+        }
+        
+        function initGame() {
+            shuffledPairs = [...pairs].flatMap(pair => [
+                { text: pair.tip, pairId: pair.tip }, 
+                { text: pair.description, pairId: pair.tip }
+            ]).sort(() => Math.random() - 0.5);
+            const board = document.getElementById("game-board");
+            board.innerHTML = "";
+            matched = [];
+            selected = [];
+            
+            shuffledPairs.forEach((item, index) => {
+                const card = document.createElement("div");
+                card.className = "card hidden";
+                card.dataset.pairId = item.pairId;
+                card.dataset.index = index;
+                card.onclick = () => handleCardClick(card, item.text);
+                board.appendChild(card);
+            });
+        }
+        
+        function handleCardClick(card, text) {
+            if (selected.length < 2 && !selected.includes(card) && !matched.includes(card)) {
+                card.textContent = text;
+                card.classList.remove("hidden");
+                selected.push(card);
+                
+                if (selected.length === 2) {
+                    if (selected[0].dataset.pairId === selected[1].dataset.pairId) {
+                        selected.forEach(c => c.classList.add("matched"));
+                        matched.push(...selected);
+                        selected = [];
+                    } else {
+                        setTimeout(() => {
+                            selected.forEach(c => {
+                                c.textContent = "";
+                                c.classList.add("hidden");
+                            });
+                            selected = [];
+                        }, 1000);
+                    }
+                }
+            }
+            if (matched.length === shuffledPairs.length) {
+                setTimeout(() => {
+                    document.getElementById("game-page").style.display = "none";
+                    document.getElementById("completion-page").style.display = "block";
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
